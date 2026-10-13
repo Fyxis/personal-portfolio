@@ -93,6 +93,9 @@ export const metadata: Metadata = {
     apple: "/logo.svg",
   },
   manifest: "/manifest.json",
+  verification: {
+    google: "14A9pBT7orBDLuBZskoN-nTidFZpYOkhrWi_1ghFYew",
+  },
 };
 
 const jsonLd = {
@@ -141,6 +144,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${archivo.variable} dark scroll-smooth`}>
       <head>
+        <meta
+          name="google-site-verification"
+          content="14A9pBT7orBDLuBZskoN-nTidFZpYOkhrWi_1ghFYew"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
