@@ -22,7 +22,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://newsaint.web.id"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://portfolio.ideloop.web.id"),
   title: {
     default: "Adrianus Bagus Setiaji (Fyxis) | Technical PM & Full Stack Engineer",
     template: "%s | Adrianus Bagus Setiaji (Fyxis)",
@@ -65,7 +65,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://newsaint.web.id",
+    url: "https://portfolio.ideloop.web.id",
     title: "Adrianus Bagus Setiaji (Fyxis) | Technical PM & Full Stack Engineer",
     description:
       "Co-Founder & Technical PM / Full Stack Engineer at Newsaint Digital Solution. Crafting high-performance Next.js web applications, scalable backend systems, and modern digital platforms.",
@@ -103,7 +103,7 @@ const jsonLd = {
   "@graph": [
     {
       "@type": "Person",
-      "@id": "https://newsaint.web.id/#person",
+      "@id": "https://portfolio.ideloop.web.id/#person",
       name: "Adrianus Bagus Setiaji",
       alternateName: ["Fyxis", "Adrianus Bagus"],
       jobTitle: "Technical Project Manager & Full Stack Engineer",
@@ -112,8 +112,8 @@ const jsonLd = {
         name: "Newsaint Digital Solution",
         url: "https://newsaint.web.id",
       },
-      url: "https://newsaint.web.id",
-      image: "https://newsaint.web.id/images/header-img-2.jpg",
+      url: "https://portfolio.ideloop.web.id",
+      image: "https://portfolio.ideloop.web.id/images/header-img-2.jpg",
       email: "bagusadrianus@gmail.com",
       sameAs: [
         "https://github.com/Fyxis",
@@ -123,13 +123,13 @@ const jsonLd = {
     },
     {
       "@type": "WebSite",
-      "@id": "https://newsaint.web.id/#website",
-      url: "https://newsaint.web.id",
+      "@id": "https://portfolio.ideloop.web.id/#website",
+      url: "https://portfolio.ideloop.web.id",
       name: "Adrianus Bagus Setiaji (Fyxis) | Technical PM & Full Stack Engineer",
       description:
         "Official portfolio of Adrianus Bagus Setiaji (@Fyxis). Co-Founder & Technical PM / Full Stack Engineer at Newsaint Digital Solution.",
       publisher: {
-        "@id": "https://newsaint.web.id/#person",
+        "@id": "https://portfolio.ideloop.web.id/#person",
       },
       inLanguage: "en-US",
     },

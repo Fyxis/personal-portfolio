@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /api/
 
-Sitemap: https://newsaint.web.id/sitemap.xml
+Sitemap: https://portfolio.ideloop.web.id/sitemap.xml
