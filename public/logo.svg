@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none" width="100%" height="100%">
+  <defs>
+    <linearGradient id="neonGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="50%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+    <linearGradient id="darkBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#131A27" />
+      <stop offset="100%" stop-color="#06090E" />
+    </linearGradient>
+    <filter id="glowFilter" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Base Hexagonal Shield with subtle border -->
+  <polygon points="100,14 176,58 176,142 100,186 24,142 24,58" fill="url(#darkBg)" stroke="url(#neonGlow)" stroke-width="3.5" stroke-linejoin="round" />
+
+  <!-- Inner Ambient Glow Line -->
+  <polygon points="100,24 167,63 167,137 100,176 33,137 33,63" fill="none" stroke="#10B981" stroke-width="1" stroke-opacity="0.3" stroke-dasharray="6 4" />
+
+  <!-- Isometric Monogram Mark: A + X + B (Fyxis / Adrianus Bagus) -->
+  <g filter="url(#glowFilter)">
+    <!-- Main Left Chevron Stem ('A' left leg and 'X' slant) -->
+    <path d="M100 42 L52 136 L72 136 L100 80 L128 136 L148 136 L100 42 Z" fill="url(#neonGlow)" fill-opacity="0.95" />
+    
+    <!-- Central Modern Crossbar with Cyber Cut -->
+    <polygon points="76,108 124,108 116,94 84,94" fill="#06090E" stroke="url(#neonGlow)" stroke-width="2" />
+
+    <!-- Sharp Center Diamond Core (The Nexus / Fyxis Core) -->
+    <polygon points="100,68 112,90 100,102 88,90" fill="url(#neonGlow)" />
+    
+    <!-- Dynamic Forward Vector Accents -->
+    <path d="M54 74 L42 96 L54 118" stroke="#06B6D4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M146 74 L158 96 L146 118" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+
+  <!-- Glowing Accent Dots at Vertex Points -->
+  <circle cx="100" cy="14" r="3.5" fill="#06B6D4" />
+  <circle cx="176" cy="58" r="3" fill="#10B981" />
+  <circle cx="176" cy="142" r="3" fill="#10B981" />
+  <circle cx="100" cy="186" r="3.5" fill="#34D399" />
+  <circle cx="24" cy="142" r="3" fill="#10B981" />
+  <circle cx="24" cy="58" r="3" fill="#10B981" />
+</svg>
