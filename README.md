@@ -142,7 +142,7 @@ Copy `.env.example` to `.env`:
 cp .env.example .env
 ```
 
-Fill in your Supabase connection parameters:
+Fill in your Supabase connection and optional hosting SMTP parameters:
 ```env
 # SUPABASE DATABASE CONFIG
 SUPABASE_URL=https://your-project.supabase.co
@@ -151,6 +151,15 @@ SUPABASE_PASS=your-database-password
 
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+
+# HOSTING SMTP EMAIL FORWARDING (Contact Form -> Gmail)
+SMTP_HOST=solodns.jagoanhosting.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=noreply@ideloop.web.id
+SMTP_PASS=your-hosting-email-password
+SMTP_FROM=Portfolio Contact <noreply@ideloop.web.id>
+CONTACT_RECEIVER_EMAIL=bagusadrianus@gmail.com
 ```
 
 ### 4. Database Setup & Migration (Optional)

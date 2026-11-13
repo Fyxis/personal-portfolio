@@ -5,8 +5,11 @@ import {
   insertMessageIntoSupabase,
   deleteMessageFromSupabase,
 } from "@/lib/db";
+import { sendContactNotificationEmail } from "@/lib/mailer";
 
 export const dynamic = "force-dynamic";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function GET(request: Request) {
   try {
@@ -28,7 +31,13 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, subject, message } = body;
+    const name = typeof body?.name === "string" ? body.name.trim() : "";
+    const email = typeof body?.email === "string" ? body.email.trim() : "";
+    const subject =
+      typeof body?.subject === "string" && body.subject.trim()
+        ? body.subject.trim()
+        : "Inquiry";
+    const message = typeof body?.message === "string" ? body.message.trim() : "";
 
     if (!name || !email || !message) {
       return NextResponse.json(
@@ -37,22 +46,66 @@ export async function POST(request: Request) {
       );
     }
 
-    const success = await insertMessageIntoSupabase({
-      name,
-      email,
-      subject: subject || "Inquiry",
-      message,
-    });
-
-    if (!success) {
+    if (!EMAIL_REGEX.test(email)) {
       return NextResponse.json(
-        { error: "Failed to store message in database" },
+        { error: "Please provide a valid email address" },
+        { status: 400 }
+      );
+    }
+
+    if (
+      name.length > 120 ||
+      email.length > 200 ||
+      subject.length > 200 ||
+      message.length > 5000
+    ) {
+      return NextResponse.json(
+        { error: "Message input exceeds allowed character limits" },
+        { status: 400 }
+      );
+    }
+
+    const payload = { name, email, subject, message };
+    const [savedToDb, emailResult] = await Promise.all([
+      insertMessageIntoSupabase(payload),
+      sendContactNotificationEmail(payload),
+    ]);
+
+    if (!savedToDb && !emailResult.sent) {
+      return NextResponse.json(
+        {
+          error:
+            emailResult.status === "failed"
+              ? `Failed to send or store message: ${emailResult.error}`
+              : "Failed to store message in database",
+        },
         { status: 500 }
+      );
+    }
+
+    if (emailResult.status === "failed") {
+      return NextResponse.json(
+        {
+          error: `Message saved to Admin Inbox, but failed to forward email via hosting SMTP: ${emailResult.error}`,
+          savedToDb,
+          emailSent: false,
+          emailStatus: emailResult.status,
+        },
+        { status: 502 }
+      );
+    }
+
+    if (emailResult.status === "not_configured") {
+      console.warn(
+        "POST /api/messages saved message to DB, but SMTP_USER/SMTP_PASS is not configured; email forwarding skipped."
       );
     }
 
     return NextResponse.json({
       success: true,
+      savedToDb,
+      emailSent: emailResult.sent,
+      emailStatus: emailResult.status,
       message: "Your message has been sent successfully",
     });
   } catch (error) {
