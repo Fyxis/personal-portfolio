@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminPasswordFromSupabase, setAdminPasswordInSupabase } from "@/lib/db";
+import { getAdminPasswordFromSupabase, updateAdminPasswordInSupabase } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -36,10 +36,14 @@ export async function POST(request: Request) {
         );
       }
 
-      const success = await setAdminPasswordInSupabase(newPassword);
-      if (!success) {
+      const result = await updateAdminPasswordInSupabase(newPassword);
+      if (!result.success) {
         return NextResponse.json(
-          { error: "Failed to persist new password in database" },
+          {
+            error: result.error
+              ? `Failed to persist new password in database: ${result.error}`
+              : "Failed to persist new password in database",
+          },
           { status: 500 }
         );
       }

@@ -5,6 +5,7 @@ import {
   savePortfolioToSupabase,
   getAdminPasswordFromSupabase,
   setAdminPasswordInSupabase,
+  updateAdminPasswordInSupabase,
   fetchMessagesFromSupabase,
   insertMessageIntoSupabase,
   deleteMessageFromSupabase,
@@ -178,6 +179,7 @@ export async function savePortfolioStoreAsync(data: PortfolioStore): Promise<boo
 export {
   getAdminPasswordFromSupabase,
   setAdminPasswordInSupabase,
+  updateAdminPasswordInSupabase,
   fetchMessagesFromSupabase,
   insertMessageIntoSupabase,
   deleteMessageFromSupabase,

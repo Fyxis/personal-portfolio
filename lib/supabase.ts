@@ -10,20 +10,69 @@ const SUPABASE_PASS = process.env.SUPABASE_PASS ;
 export const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Postgres connection pool for server-side route handlers
+function extractSupabaseProjectRef(url?: string): string {
+  const match = url?.match(/https?:\/\/([a-z0-9-]+)\.supabase\.co/i);
+  return match?.[1] || "znyieftopafeywpkscgt";
+}
+
+function getPostgresConnectionString(): string | undefined {
+  return process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.SUPABASE_DB_URL;
+}
+
+function hasPostgresCredentials(): boolean {
+  return Boolean(getPostgresConnectionString() || SUPABASE_PASS);
+}
+
+function getAdminServiceClient() {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SUPABASE_URL || !serviceKey) return null;
+  return createClient(SUPABASE_URL, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+function formatSafeDbError(error: unknown): string {
+  if (!error || typeof error !== "object") return "Unknown database error";
+  const err = error as { code?: string; message?: string };
+  if (err.code === "28P01" || err.code === "28000") {
+    return "Database authentication failed (check SUPABASE_PASS)";
+  }
+  if (err.code) {
+    return `Database error (${err.code})`;
+  }
+  return err.message ? err.message.slice(0, 120) : "Unknown database error";
+}
+
 let pool: Pool | null = null;
 
 export function getPostgresPool(): Pool {
   if (!pool) {
-    pool = new Pool({
-      host: "db.znyieftopafeywpkscgt.supabase.co",
-      port: 5432,
-      user: "postgres",
-      password: SUPABASE_PASS,
-      database: "postgres",
-      ssl: { rejectUnauthorized: false },
-      max: 10,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000,
+    const connectionString = getPostgresConnectionString();
+    const projectRef = extractSupabaseProjectRef(SUPABASE_URL);
+    const poolConfig = connectionString
+      ? {
+          connectionString,
+          ssl: { rejectUnauthorized: false },
+          max: 5,
+          idleTimeoutMillis: 30000,
+          connectionTimeoutMillis: 10000,
+        }
+      : {
+          // Use Supavisor IPv4 pooler so serverless runtimes (e.g. Vercel) can reach Supabase Postgres
+          host: process.env.SUPABASE_DB_HOST || "aws-0-ap-northeast-1.pooler.supabase.com",
+          port: Number(process.env.SUPABASE_DB_PORT || 6543),
+          user: process.env.SUPABASE_DB_USER || `postgres.${projectRef}`,
+          password: SUPABASE_PASS,
+          database: "postgres",
+          ssl: { rejectUnauthorized: false },
+          max: 5,
+          idleTimeoutMillis: 30000,
+          connectionTimeoutMillis: 10000,
+        };
+
+    pool = new Pool(poolConfig);
+    pool.on("error", (err) => {
+      console.error("Unexpected PostgreSQL pool error:", err.message);
     });
   }
   return pool;
@@ -279,32 +328,94 @@ export async function savePortfolioToSupabase(data: PortfolioStore): Promise<boo
 
 // Password operations
 export async function getAdminPasswordFromSupabase(): Promise<string> {
-  const p = getPostgresPool();
-  try {
-    const res = await p.query("SELECT password FROM admin_settings WHERE id = 'auth' LIMIT 1");
-    return res.rows[0]?.password || "admin";
-  } catch (error) {
-    console.error("Error getting admin password from Supabase:", error);
-    return "admin";
+  if (hasPostgresCredentials()) {
+    const p = getPostgresPool();
+    try {
+      const res = await p.query("SELECT password FROM admin_settings WHERE id = 'auth' LIMIT 1");
+      if (res.rows[0]?.password) {
+        return res.rows[0].password;
+      }
+    } catch (error) {
+      console.error("Error getting admin password from Supabase Postgres:", error);
+    }
   }
+
+  const serviceClient = getAdminServiceClient();
+  if (serviceClient) {
+    try {
+      const { data, error } = await serviceClient
+        .from("admin_settings")
+        .select("password")
+        .eq("id", "auth")
+        .limit(1)
+        .maybeSingle();
+      if (!error && data?.password) {
+        return data.password;
+      }
+    } catch (error) {
+      console.error("Error getting admin password from Supabase REST:", error);
+    }
+  }
+
+  return "admin";
+}
+
+export async function updateAdminPasswordInSupabase(
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  let pgError: unknown = null;
+
+  if (hasPostgresCredentials()) {
+    const p = getPostgresPool();
+    try {
+      await p.query(
+        `
+        INSERT INTO admin_settings (id, password, updated_at)
+        VALUES ('auth', $1, NOW())
+        ON CONFLICT (id) DO UPDATE SET password = EXCLUDED.password, updated_at = NOW()
+      `,
+        [newPassword]
+      );
+      return { success: true };
+    } catch (error) {
+      pgError = error;
+      console.error("Error setting admin password in Supabase Postgres:", error);
+    }
+  }
+
+  const serviceClient = getAdminServiceClient();
+  if (serviceClient) {
+    try {
+      const { error } = await serviceClient
+        .from("admin_settings")
+        .upsert(
+          { id: "auth", password: newPassword, updated_at: new Date().toISOString() },
+          { onConflict: "id" }
+        );
+      if (!error) {
+        return { success: true };
+      }
+      console.error("Error setting admin password via Supabase REST:", error);
+      return { success: false, error: error.message };
+    } catch (error) {
+      console.error("Error setting admin password via Supabase REST:", error);
+      return { success: false, error: formatSafeDbError(error) };
+    }
+  }
+
+  if (!hasPostgresCredentials()) {
+    return {
+      success: false,
+      error: "Missing SUPABASE_PASS, DATABASE_URL, or SUPABASE_SERVICE_ROLE_KEY in server environment",
+    };
+  }
+
+  return { success: false, error: formatSafeDbError(pgError) };
 }
 
 export async function setAdminPasswordInSupabase(newPassword: string): Promise<boolean> {
-  const p = getPostgresPool();
-  try {
-    await p.query(
-      `
-      INSERT INTO admin_settings (id, password, updated_at)
-      VALUES ('auth', $1, NOW())
-      ON CONFLICT (id) DO UPDATE SET password = EXCLUDED.password, updated_at = NOW()
-    `,
-      [newPassword]
-    );
-    return true;
-  } catch (error) {
-    console.error("Error setting admin password in Supabase:", error);
-    return false;
-  }
+  const result = await updateAdminPasswordInSupabase(newPassword);
+  return result.success;
 }
 
 // Messages operations
