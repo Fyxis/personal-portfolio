@@ -1,0 +1,40 @@
+name: Keep Supabase & Portfolio Alive
+
+on:
+  schedule:
+    # Runs every 2 days at 00:00 UTC (prevents Supabase free tier 7-day auto-pause)
+    - cron: '0 0 */2 * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Portfolio API (Next.js & Supabase Pool)
+        run: |
+          echo "Pinging Portfolio API..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://bagus.ideloop.web.id/api/portfolio)
+          echo "Portfolio API Response: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "Warning: Portfolio API returned $HTTP_STATUS"
+          else
+            echo "Portfolio API successfully reached!"
+          fi
+
+      - name: Ping Supabase REST API Gateway
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://znyieftopafeywpkscgt.supabase.co' }}
+          SUPABASE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_lvJUDW40TJkOpMydTl3a9Q_hrztyTKf' }}
+        run: |
+          echo "Pinging Supabase REST API..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: $SUPABASE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_KEY" \
+            "$SUPABASE_URL/rest/v1/profile?select=id")
+          echo "Supabase REST API Response: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "Warning: Supabase REST API returned $HTTP_STATUS"
+            exit 1
+          else
+            echo "Supabase REST API successfully reached! Project is active."
+          fi
