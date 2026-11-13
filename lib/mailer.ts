@@ -26,7 +26,7 @@ interface SmtpConfig {
 }
 
 const DEFAULT_RECEIVER_EMAIL = "bagusadrianus@gmail.com";
-const DEFAULT_SMTP_HOST = "solodns.jagoanhosting.com";
+const DEFAULT_SMTP_HOST = "smtp.gmail.com";
 
 function stripHeaderCRLF(value: string): string {
   return value.replace(/[\r\n]+/g, " ").trim();
@@ -42,13 +42,15 @@ function escapeHtml(value: string): string {
 }
 
 function getSmtpConfig(): SmtpConfig | null {
-  const user = process.env.SMTP_USER?.trim();
-  const pass = process.env.SMTP_PASS;
-  if (!user || !pass) {
+  const user = (process.env.SMTP_USER || process.env.GMAIL_USER)?.trim();
+  const rawPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
+  if (!user || !rawPass) {
     return null;
   }
 
   const host = process.env.SMTP_HOST?.trim() || DEFAULT_SMTP_HOST;
+  // Google displays 16-char App Passwords in 4-char space-separated groups; strip spaces for Gmail SMTP
+  const pass = host.endsWith(".gmail.com") ? rawPass.replace(/\s+/g, "") : rawPass;
   const parsedPort = Number(process.env.SMTP_PORT || 465);
   const port = Number.isFinite(parsedPort) && parsedPort > 0 ? parsedPort : 465;
   const secureEnv = process.env.SMTP_SECURE?.trim().toLowerCase();
@@ -140,7 +142,7 @@ function formatSafeSmtpError(error: unknown): string {
 }
 
 /**
- * Forward a submitted portfolio contact message to the owner's Gmail inbox via hosting SMTP.
+ * Forward a submitted portfolio contact message to the owner's Gmail inbox via configured SMTP (defaults to Gmail SMTP).
  */
 export async function sendContactNotificationEmail(
   payload: ContactEmailPayload
