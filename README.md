@@ -10,7 +10,7 @@
 
 **High-performance, full-stack personal portfolio and production-ready Admin CMS engineered for extreme speed, rich micro-interactions, and enterprise-grade reliability.**
 
-[🌐 Live Platform](https://newsaint.web.id) • [💼 LinkedIn](https://www.linkedin.com/in/adrianus-bagus-737418259/) • [🐙 GitHub](https://github.com/Fyxis) • [✉️ Email](mailto:bagusadrianus@gmail.com)
+[🌐 Live Platform](https://bagus.ideloop.web.id) • [💼 LinkedIn](https://www.linkedin.com/in/adrianus-bagus-737418259/) • [🐙 GitHub](https://github.com/Fyxis) • [✉️ Email](mailto:bagusadrianus@gmail.com)
 
 </div>
 
@@ -188,8 +188,8 @@ npm run start
 
 **Adrianus Bagus Setiaji (`Fyxis`)**
 * **Title**: Technical Project Manager & Senior Full Stack Engineer
-* **Company**: Newsaint Digital Solution
-* **Website**: [https://newsaint.web.id](https://newsaint.web.id)
+* **Company**: Newsaint Digital Solution ([https://newsaint.web.id](https://newsaint.web.id))
+* **Portfolio**: [https://bagus.ideloop.web.id](https://bagus.ideloop.web.id)
 * **GitHub**: [@Fyxis](https://github.com/Fyxis)
 * **LinkedIn**: [adrianus-bagus-737418259](https://www.linkedin.com/in/adrianus-bagus-737418259/)
 * **Email**: [bagusadrianus@gmail.com](mailto:bagusadrianus@gmail.com)
